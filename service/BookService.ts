@@ -96,3 +96,18 @@ export async function getBookComments(bookId: number) {
     const data = await response.json();
     return data;
 }
+
+export async function addBookComment(bookId: number, content: string) {
+    const response = await fetch(`${API_URL}/books/${bookId}/notes`, {
+        method: "POST",
+        headers: {
+            "Content-Type": "application/json",
+        },
+        body: JSON.stringify({ content }),
+    });
+    if (!response.ok) {
+        throw new Error("Failed to add comment");
+    }
+    const data = await response.json();
+    return data;
+}
