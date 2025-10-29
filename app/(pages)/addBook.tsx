@@ -1,24 +1,25 @@
-import { BookTheme } from "@/model/Book";
-import { addBook } from "@/service/BookService";
+import { Book, BookTheme } from "@/model/Book";
+import { addBook, updateBook } from "@/service/BookService";
 import { Picker } from "@react-native-picker/picker";
-import { useMemo, useState } from "react";
+import { useEffect, useMemo, useState } from "react";
 import { Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
 type AddBookProps = {
   onClose?: () => void;
   onSuccess?: () => void;
+  book?: Book | null;
 };
 
-export default function AddBook({ onClose, onSuccess }: AddBookProps) {
-  const [name, setName] = useState<string>("");
-  const [author, setAuthor] = useState<string>("");
-  const [editor, setEditor] = useState<string>("");
-  const [year, setYear] = useState<number | undefined>(undefined);
-  // const [cover, setCover] = useState<string>("");
-  const [theme, setTheme] = useState<BookTheme>(BookTheme.Classique);
+export default function AddBook({ onClose, onSuccess, book }: AddBookProps) {
+  const [name, setName] = useState<string>(book?.name ?? "");
+  const [author, setAuthor] = useState<string>(book?.author ?? "");
+  const [editor, setEditor] = useState<string>(book?.editor ?? "");
+  const [year, setYear] = useState<number | undefined>(book?.year ?? undefined);
+  const [theme, setTheme] = useState<BookTheme>(book?.theme ?? BookTheme.Classique);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setSubmitting] = useState(false);
   const themeOptions = useMemo(() => Object.values(BookTheme), []);
+  const isEditMode = Boolean(book);
 
   const resetForm = () => {
     setName("");
@@ -27,6 +28,18 @@ export default function AddBook({ onClose, onSuccess }: AddBookProps) {
     setYear(undefined);
     setTheme(BookTheme.Classique);
   };
+
+  useEffect(() => {
+    if (book) {
+      setName(book.name);
+      setAuthor(book.author);
+      setEditor(book.editor);
+      setYear(book.year);
+      setTheme(book.theme ?? BookTheme.Classique);
+    } else {
+      resetForm();
+    }
+  }, [book]);
 
   const submitBook = async () => {
     if (!name.trim() || !author.trim() || !editor.trim() || !year || !theme) {
@@ -37,22 +50,32 @@ export default function AddBook({ onClose, onSuccess }: AddBookProps) {
     setSubmitting(true);
     setError(null);
     try {
-      await addBook({
-        name: name.trim(),
-        author: author.trim(),
-        editor: editor.trim(),
-        year,
-        theme,
-        read: false,
-        favorite: false,
-        rating: 0,
-        cover: "",
-      });
-      resetForm();
+      if (isEditMode && book) {
+        await updateBook(book.id, {
+          name: name.trim(),
+          author: author.trim(),
+          editor: editor.trim(),
+          year,
+          theme,
+        });
+      } else {
+        await addBook({
+          name: name.trim(),
+          author: author.trim(),
+          editor: editor.trim(),
+          year,
+          theme,
+          read: false,
+          favorite: false,
+          rating: 0,
+          cover: "",
+        });
+        resetForm();
+      }
       onSuccess?.();
       onClose?.();
     } catch (err) {
-      setError("Impossible d'ajouter le livre. Reessayez plus tard.");
+      setError(isEditMode ? "Impossible de modifier le livre. Réessayez plus tard." : "Impossible d'ajouter le livre. Réessayez plus tard.");
     } finally {
       setSubmitting(false);
     }
@@ -61,7 +84,7 @@ export default function AddBook({ onClose, onSuccess }: AddBookProps) {
   return (
     <View style={styles.container}>
       <View style={styles.headerRow}>
-        <Text style={styles.title}>Ajouter un livre</Text>
+        <Text style={styles.title}>{isEditMode ? "Modifier un livre" : "Ajouter un livre"}</Text>
         {onClose && (
           <Pressable onPress={onClose} style={styles.closeButton}>
             <Text style={styles.closeButtonText}>Fermer</Text>
@@ -141,7 +164,7 @@ export default function AddBook({ onClose, onSuccess }: AddBookProps) {
         disabled={isSubmitting}
       >
         <Text style={styles.submitButtonText}>
-          {isSubmitting ? "Ajout..." : "Ajouter"}
+          {isSubmitting ? "Ajout..." : isEditMode ? "Modifier" : "Ajouter"}
         </Text>
       </Pressable>
     </View>
