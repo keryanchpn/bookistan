@@ -1,6 +1,8 @@
-import { useState } from "react";
-import { Text, TextInput, View, StyleSheet, Pressable } from "react-native";
+import { BookTheme } from "@/model/Book";
 import { addBook } from "@/service/BookService";
+import { Picker } from "@react-native-picker/picker";
+import { useMemo, useState } from "react";
+import { Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
 
 type AddBookProps = {
   onClose?: () => void;
@@ -13,20 +15,21 @@ export default function AddBook({ onClose, onSuccess }: AddBookProps) {
   const [editor, setEditor] = useState<string>("");
   const [year, setYear] = useState<number | undefined>(undefined);
   // const [cover, setCover] = useState<string>("");
-  const [theme, setTheme] = useState<string>("");
+  const [theme, setTheme] = useState<BookTheme>(BookTheme.Classique);
   const [error, setError] = useState<string | null>(null);
   const [isSubmitting, setSubmitting] = useState(false);
+  const themeOptions = useMemo(() => Object.values(BookTheme), []);
 
   const resetForm = () => {
     setName("");
     setAuthor("");
     setEditor("");
     setYear(undefined);
-    setTheme("");
+    setTheme(BookTheme.Classique);
   };
 
   const submitBook = async () => {
-    if (!name.trim() || !author.trim() || !editor.trim() || !year) {
+    if (!name.trim() || !author.trim() || !editor.trim() || !year || !theme) {
       setError("Merci de remplir les champs obligatoires.");
       return;
     }
@@ -39,7 +42,7 @@ export default function AddBook({ onClose, onSuccess }: AddBookProps) {
         author: author.trim(),
         editor: editor.trim(),
         year,
-        theme: theme.trim(),
+        theme,
         read: false,
         favorite: false,
         rating: 0,
@@ -104,11 +107,28 @@ export default function AddBook({ onClose, onSuccess }: AddBookProps) {
       {/* <TextInput placeholder="Couverture (URL)" value={cover} onChangeText={setCover} /> */}
       <View style={styles.field}>
         <Text style={styles.label}>Theme</Text>
-        <TextInput
-          style={styles.input}
-          value={theme}
-          onChangeText={setTheme}
-        />
+        <View style={[
+          styles.pickerWrapper,
+          Platform.OS === "ios" && styles.pickerWrapperIOS,
+          Platform.OS === "web" && styles.pickerWrapperWeb,
+        ]}>
+          <Picker
+            selectedValue={theme}
+            onValueChange={(value) => setTheme(value as BookTheme)}
+            dropdownIconColor="#1F2933"
+            mode={Platform.OS === "android" ? "dropdown" : undefined}
+            style={[
+              styles.pickerGlobal,
+              Platform.OS === "ios" && styles.pickerIOS,
+              Platform.OS === "web" && styles.pickerWeb,
+            ]}
+            itemStyle={Platform.OS === "ios" ? styles.pickerItemIOS : undefined}
+          >
+            {themeOptions.map((option) => (
+              <Picker.Item key={option} label={option} value={option} />
+            ))}
+          </Picker>
+        </View>
       </View>
       {error && <Text style={styles.errorText}>{error}</Text>}
       <Pressable
@@ -177,6 +197,43 @@ const styles = StyleSheet.create({
         paddingVertical: 12,
         backgroundColor: "#F8FAFC",
         fontSize: 14,
+    },
+    pickerWrapper: {
+        borderWidth: 1,
+        borderColor: "#D0D5DD",
+        borderRadius: 12,
+        overflow: "hidden",
+        backgroundColor: "#F8FAFC",
+        ...Platform.select({
+            android: {
+                height: 48,
+                justifyContent: "center",
+            },
+            web: {
+                height: 48,
+            },
+        }),
+        transitionProperty: "border-color, box-shadow",
+        transitionDuration: "120ms",
+    },
+    pickerWrapperIOS: {
+        paddingVertical: 4,
+    },
+    pickerGlobal: {
+        width: "100%",
+        color: "#1F2933",
+    },
+    pickerIOS: {
+        height: 180,
+    },
+    pickerItemIOS: {
+        color: "#1F2933",
+    },
+    pickerWrapperWeb: {
+        display: "flex",
+    },
+    pickerWeb: {
+        height: "100%",
     },
     errorText: {
         color: "#DC2626",
