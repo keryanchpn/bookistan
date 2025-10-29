@@ -3,17 +3,23 @@ import { ImageSourcePropType } from "react-native";
 
 import coverNotFound from "@/assets/images/cover-not-found.png";
 import { Book } from "@/model/Book";
-import { fetchCoverUrlByIsbn, fetchIsbnByTitleAuthor } from "@/service/BookService";
+import { fetchCoverUrlByIsbn, fetchIsbnByTitleAuthor, updateBook } from "@/service/BookService";
 
 const isbnCache = new Map<string, string>();
 const coverUrlCache = new Map<string, string | null>();
+const coverUpdateCache = new Set<number>();
+
+type UseBookCoverOptions = {
+  onCoverPersisted?: (coverUrl: string) => void;
+};
 
 type UseBookCoverResult = {
   isbn: string;
   coverSource: ImageSourcePropType;
 };
 
-export function useBookCover(book: Book | null): UseBookCoverResult {
+export function useBookCover(book: Book | null, options: UseBookCoverOptions = {}): UseBookCoverResult {
+  const { onCoverPersisted } = options;
   const [isbn, setIsbn] = useState<string>("");
   const [coverSource, setCoverSource] = useState<ImageSourcePropType>(coverNotFound);
 
@@ -64,7 +70,21 @@ export function useBookCover(book: Book | null): UseBookCoverResult {
   useEffect(() => {
     let cancelled = false;
 
-    if (!book || !isbn) {
+    if (!book) {
+      setCoverSource(coverNotFound);
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    if (book.cover) {
+      setCoverSource({ uri: book.cover });
+      return () => {
+        cancelled = true;
+      };
+    }
+
+    if (!isbn) {
       setCoverSource(coverNotFound);
       return () => {
         cancelled = true;
@@ -88,6 +108,15 @@ export function useBookCover(book: Book | null): UseBookCoverResult {
       coverUrlCache.set(isbn, url);
       if (url) {
         setCoverSource({ uri: url });
+        if (!cancelled && book && !coverUpdateCache.has(book.id) && book.cover !== url) {
+          try {
+            await updateBook(book.id, { cover: url });
+            coverUpdateCache.add(book.id);
+            onCoverPersisted?.(url);
+          } catch (error) {
+            console.error("Failed to persist cover url", error);
+          }
+        }
       } else {
         setCoverSource(coverNotFound);
       }
@@ -99,7 +128,7 @@ export function useBookCover(book: Book | null): UseBookCoverResult {
     return () => {
       cancelled = true;
     };
-  }, [book?.id, isbn]);
+  }, [book?.id, book?.cover, isbn]);
 
   return { isbn, coverSource };
 }

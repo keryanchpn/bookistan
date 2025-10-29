@@ -5,7 +5,7 @@ import { addBookComment, deleteBook, getBookById, getBookComments, updateBook } 
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ComponentProps, useEffect, useState } from "react";
+import { ComponentProps, useCallback, useEffect, useState } from "react";
 import { ActivityIndicator, Alert, Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useBookCover } from "@/hooks/useBookCover";
@@ -19,7 +19,10 @@ export default function BookDetailScreen() {
   const [favIconName, setFavIconName] = useState<ComponentProps<typeof MaterialIcons>["name"]>("favorite-outline");
   const [readIconName, setReadIconName] = useState<ComponentProps<typeof Ionicons>["name"]>("checkmark-done-circle-outline");
   const [isModalVisible, setModalVisible] = useState(false);
-  const { isbn, coverSource } = useBookCover(book);
+  const handleCoverPersisted = useCallback((url: string) => {
+    setBook((prev) => (prev ? { ...prev, cover: url } : prev));
+  }, []);
+  const { isbn, coverSource } = useBookCover(book, { onCoverPersisted: handleCoverPersisted });
   const [localCoverUri, setLocalCoverUri] = useState<string | null>(null);
 
   const router = useRouter();
@@ -100,7 +103,7 @@ export default function BookDetailScreen() {
       }
 
       const result = await ImagePicker.launchImageLibraryAsync({
-        mediaTypes: ["images"],
+        mediaTypes: "images" as any,
         quality: 0.8,
       });
 
