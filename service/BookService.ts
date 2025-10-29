@@ -1,7 +1,7 @@
 import { Book } from "@/model/Book";
 
 export default async function getBooks() {
-    const response = await fetch("http://localhost:3000/books");
+    const response = await fetch("https://api.books.tristan-renard.com/books");
     if (!response.ok) {
         throw new Error("Failed to fetch books");
     }
