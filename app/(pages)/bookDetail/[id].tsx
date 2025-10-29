@@ -1,13 +1,13 @@
 import BookFormModal from "@/component/bookFormModal";
 import { Book } from "@/model/Book";
 import { Comment } from "@/model/Comment";
-import { addBookComment, deleteBook, getBookById, getBookComments, updateBook } from "@/service/BookService";
-import { Ionicons } from "@expo/vector-icons";
+import { addBookComment, deleteBook, fetchIsbnByTitleAuthor, getBookById, getBookComments, updateBook } from "@/service/BookService";
+import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ComponentProps, useEffect, useState } from "react";
-import { ActivityIndicator, Alert, Image, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
-
+import { ActivityIndicator, Alert, Image, ImageSourcePropType, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
+import coverNotFound from "@/assets/images/cover-not-found.png";
 export default function BookDetailScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const [book, setBook] = useState<Book | null>(null);
@@ -17,6 +17,8 @@ export default function BookDetailScreen() {
   const [favIconName, setFavIconName] = useState<ComponentProps<typeof MaterialIcons>["name"]>("favorite-outline");
   const [readIconName, setReadIconName] = useState<ComponentProps<typeof Ionicons>["name"]>("checkmark-done-circle-outline");
   const [isModalVisible, setModalVisible] = useState(false);
+  const [codeISBN, setCodeISBN] = useState<string>("");
+  const [coverSource, setCoverSource] = useState<ImageSourcePropType | null>(coverNotFound);
 
   const router = useRouter();
 
@@ -75,8 +77,54 @@ export default function BookDetailScreen() {
       loadComments();
       setFavIconName(book.favorite ? "favorite" : "favorite-outline");
       setReadIconName(book.read ? "checkmark-done-circle" : "checkmark-done-circle-outline");
+      setCodeISBN("");
+      fetchIsbnByTitleAuthor(book.name, book.author)
+        .then((isbn) => {
+          setCodeISBN(isbn ?? "");
+        })
+        .catch(() => setCodeISBN(""));
+    } else {
+      setCodeISBN("");
     }
   }, [book]);
+
+  useEffect(() => {
+    if (!book) {
+      setCoverSource(coverNotFound);
+      return;
+    }
+
+    if (!codeISBN) {
+      setCoverSource(coverNotFound);
+      return;
+    }
+
+    let cancelled = false;
+    const checkCover = async () => {
+      const url = `https://covers.openlibrary.org/b/isbn/${codeISBN}-L.jpg?default=false`;
+      try {
+        const response = await fetch(url);
+        if (cancelled) {
+          return;
+        }
+        if (response.ok) {
+          setCoverSource({ uri: url });
+        } else {
+          setCoverSource(coverNotFound);
+        }
+      } catch {
+        if (!cancelled) {
+          setCoverSource(coverNotFound);
+        }
+      }
+    };
+
+    setCoverSource(coverNotFound);
+    checkCover();
+    return () => {
+      cancelled = true;
+    };
+  }, [book, codeISBN]);
 
   const setFavorite = async () => {
     if(!book) return;
@@ -89,6 +137,13 @@ export default function BookDetailScreen() {
     if(!book) return;
     book.read = !book.read;
     await updateBook(book.id, { read: book.read });
+    loadBook(String(book.id));
+  };
+
+  const setRating = async (rating: number) => {
+    if(!book) return;
+    book.rating = rating;
+    await updateBook(book.id, { rating: book.rating });
     loadBook(String(book.id));
   };
 
@@ -117,7 +172,6 @@ export default function BookDetailScreen() {
           <Text style={styles.title}>{book.name}</Text>
           <Text style={styles.author}>{book.author}</Text>
         </View>
-        {/* <Image source={{ uri: book.cover }} style={{ width: 80, height: 120, borderRadius: 8, backgroundColor: "#E2E8F0" }} /> */}
         <View style={{ flexDirection: "row" }}>
           <Pressable onPress={setFavorite}>
             <MaterialIcons name={favIconName} size={30} color={book.favorite ? "#FF6B6B" : "#CBD5E1"} />
@@ -129,10 +183,33 @@ export default function BookDetailScreen() {
       </View>
 
       <View style={styles.section}>
-        <InfoRow label="Éditeur" value={book.editor} />
-        <InfoRow label="Année" value={String(book.year)} />
-        <InfoRow label="Note" value={`${book.rating}/10`} />
-        <InfoRow label="Thème" value={book.theme} />
+        <View style={styles.coverRow}>
+          {coverSource ? (
+            <Image source={coverSource} style={styles.coverImage} />
+          ) : (
+            <View style={[styles.coverImage, styles.coverPlaceholder]} />
+          )}
+          <View style={styles.coverInfo}>
+            <Text style={styles.coverInfoTitle}>Informations</Text>
+            <View style={styles.infoList}>
+              <InfoRow label="Éditeur" value={book.editor} />
+              <InfoRow label="Année" value={String(book.year)} />
+              <InfoRow label="Thème" value={book.theme} />
+              {codeISBN ? <InfoRow label="ISBN" value={codeISBN} /> : null}
+              <View style={styles.stars}>
+                {Array.from({ length: 5 }, (_, i) => (
+                  <Pressable key={i} onPress={() => setRating(i + 1)}>
+                    <FontAwesome
+                      name={i < Math.round(book.rating) ? "star" : "star-o"}
+                      size={30}
+                      color="#FBBF24"
+                    />
+                  </Pressable>
+                ))}
+              </View>
+            </View>
+          </View>
+        </View>
       </View>
 
       <BookFormModal
@@ -269,5 +346,40 @@ const styles = StyleSheet.create({
     color: "#FFFFFF",
     fontSize: 16,
     fontWeight: "600",
+  },
+  stars: {
+    flexDirection: "row",
+    gap: 4,
+    justifyContent: "space-around"
+  },
+  coverRow: {
+    flexDirection: "row",
+    gap: 16,
+    alignItems: "stretch",
+  },
+  coverImage: {
+    width: 110,
+    height: 165,
+    borderRadius: 10,
+    backgroundColor: "#E2E8F0",
+  },
+  coverPlaceholder: {
+    justifyContent: "center",
+    alignItems: "center",
+  },
+  coverInfo: {
+    flex: 1,
+    gap: 12,
+  },
+  coverInfoTitle: {
+    fontSize: 16,
+    fontWeight: "700",
+    color: "#1F2933",
+  },
+  infoList: {
+    gap: 10,
+  },
+  ratingRow: {
+    alignItems: "center",
   },
 });

@@ -1,31 +1,35 @@
 import { FlatList, Text, View, StyleSheet, Pressable } from "react-native";
-import { use, useCallback, useState } from "react";
+import { useCallback, useEffect, useState } from "react";
 import { Book } from "@/model/Book";
-import { getBooks } from "@/service/BookService";
+import { getBooksFiltered } from "@/service/BookService";
 import BookListDetail from "@/component/BookListDetail";
 import { useRouter } from "expo-router";
 import BookFormModal from "@/component/bookFormModal";
 import { useFocusEffect } from "expo-router";
+import BookFilters from "@/component/BookFilters";
 
 
 export default function Books() {
   const [books, setBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(true);
+  const [showLoadingText, setShowLoadingText] = useState(false);
   const [isModalVisible, setModalVisible] = useState(false);
+  const [isFilteredByRead, setIsFilteredByRead] = useState<boolean | null>(null);
+  const [isFilteredByFavorite, setIsFilteredByFavorite] = useState<boolean | null>(null);
 
   const router = useRouter();
 
   const loadBooks = useCallback(async () => {
     setLoading(true);
     try {
-      const data = await getBooks();
+      const data = await getBooksFiltered(isFilteredByRead, isFilteredByFavorite);
       setBooks(data);
     } catch (err) {
       console.error("Failed to load books", err);
     } finally {
       setLoading(false);
     }
-  }, []);
+  }, [isFilteredByRead, isFilteredByFavorite]);
 
   useFocusEffect(
     useCallback(() => {
@@ -33,6 +37,24 @@ export default function Books() {
     }, [loadBooks])
   );
 
+  useEffect(() => {
+    loadBooks();
+  }, [loadBooks]);
+
+  useEffect(() => {
+    let timeout: ReturnType<typeof setTimeout> | undefined;
+    if (loading) {
+      timeout = setTimeout(() => setShowLoadingText(true), 400);
+    } else {
+      setShowLoadingText(false);
+    }
+
+    return () => {
+      if (timeout) {
+        clearTimeout(timeout);
+      }
+    };
+  }, [loading]);
 
   return (
     <View style={styles.container}>
@@ -52,10 +74,17 @@ export default function Books() {
         onSuccess={loadBooks}
       />
 
+      <BookFilters
+        isFilteredByRead={isFilteredByRead}
+        setIsFilteredByRead={setIsFilteredByRead}
+        isFilteredByFavorite={isFilteredByFavorite}
+        setIsFilteredByFavorite={setIsFilteredByFavorite}
+      />
+
       
-      {loading ? (
+      {loading && showLoadingText ? (
         <Text>Chargement des livres... ( l'api peut prendre du temps à se reveiller )</Text>
-      ) : books.length === 0 ? (
+      ) : !loading && books.length === 0 ? (
         <Text>Aucun livre disponible. Ajoutez-en un !</Text>
       ) : null}
       <FlatList
