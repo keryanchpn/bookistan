@@ -7,6 +7,7 @@ import { useRouter } from "expo-router";
 import BookFormModal from "@/component/bookFormModal";
 import { useFocusEffect } from "expo-router";
 import BookFilters from "@/component/BookFilters";
+import { SafeAreaView } from "react-native-safe-area-context";
 
 
 export default function Books() {
@@ -77,7 +78,8 @@ export default function Books() {
   }, [loading]);
 
   return (
-    <View style={styles.container}>
+    <SafeAreaView style={styles.safeArea} edges={["top", "left", "right"]}>
+      <View style={styles.container}>
       <View style={styles.headerRow}>
         <Text style={styles.header}>Livres</Text>
         <Pressable
@@ -136,11 +138,16 @@ export default function Books() {
         ItemSeparatorComponent={() => <View style={styles.separator} />}
         showsVerticalScrollIndicator={false}
       />
-    </View>
+      </View>
+    </SafeAreaView>
   );
 }
 
 const styles = StyleSheet.create({
+  safeArea: {
+    flex: 1,
+    backgroundColor: "#F4F6F8",
+  },
   container: {
     flex: 1,
     padding: 16,

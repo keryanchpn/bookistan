@@ -10,7 +10,7 @@ export default function RootLayout() {
       <Stack.Screen
         name="books"
         options={{
-          headerTitle: "Catalogue",
+          headerShown: false,
         }}
       />
       <Stack.Screen
