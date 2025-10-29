@@ -1,3 +1,17 @@
+# Choix personnels
+
+## Modification de l'API Book
+
+J'ai modifié un peu l'api book pour qu'elle stock et utilise les données dans un fichier JSON créant un stockage persistant.
+
+## Hébergement de l'API Book
+
+J'ai herbergé l'API Book sur render, c'est un des choix les plus simple et efficace (https://book-api-5ofb.onrender.com)
+
+## Hébergement des images
+
+Pour herberger les images importés j'utilise Cloudinary, c'est aussi un des choix gratuit le plus simple !
+
 # Welcome to your Expo app 👋
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
