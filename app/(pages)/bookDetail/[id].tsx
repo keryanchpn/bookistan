@@ -95,6 +95,10 @@ export default function BookDetailScreen() {
   const displayedCover = localCoverUri ? { uri: localCoverUri } : coverSource;
 
   const handleSelectCover = async () => {
+    if (!book) {
+      return;
+    }
+
     try {
       const { granted } = await ImagePicker.requestMediaLibraryPermissionsAsync();
       if (!granted) {

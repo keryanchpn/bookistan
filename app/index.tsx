@@ -3,8 +3,8 @@ import coverNotFound from "@/assets/images/cover-not-found.png";
 import logo from "@/assets/images/bookistan.png";
 import { Book } from "@/model/Book";
 import { getBooksWithParams } from "@/service/BookService";
-import { useRouter } from "expo-router";
-import { useEffect, useState } from "react";
+import { useFocusEffect, useRouter } from "expo-router";
+import { useCallback, useEffect, useState } from "react";
 import { FlatList, Image, Pressable, StyleSheet, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
 
@@ -25,10 +25,11 @@ export default function Index() {
       setLoading(false);
     }
   };
-
-  useEffect(() => {
-    loadUnreadBooks();
-  }, []);
+  useFocusEffect(
+    useCallback(() => {
+      loadUnreadBooks();
+    }, [])
+  );
 
   const renderUnreadBook = ({ item }: { item: Book }) => {
     const coverSource = item.cover ? { uri: item.cover } : coverNotFound;
@@ -61,7 +62,7 @@ export default function Index() {
           <Text style={styles.brand}>Bookistan</Text>
         </View>
 
-        <Text style={styles.title}>Bienvenue cher lecteur</Text>
+        <Text style={styles.title}>Bienvenue !</Text>
         <Text style={styles.subtitle}>Poursuivez vos découvertes littéraires.</Text>
 
         <View style={styles.carouselHeader}>

@@ -3,10 +3,18 @@ import { Book, BookTheme } from "@/model/Book";
 const API_URL = "https://book-api-5ofb.onrender.com";
 
 const THEME_VALUES = new Set(Object.values(BookTheme));
-type BookDTO = Omit<Book, "theme"> & { theme: string };
+type BookDTO = Omit<Book, "theme" | "cover"> & { theme: string; cover?: string | null };
 
 function normalizeTheme(theme: string): BookTheme {
     return THEME_VALUES.has(theme as BookTheme) ? (theme as BookTheme) : BookTheme.Classique;
+}
+
+function mapBookDto(dto: BookDTO): Book {
+    return {
+        ...dto,
+        cover: dto.cover ?? "",
+        theme: normalizeTheme(dto.theme),
+    };
 }
 
 export async function getBooks() {
@@ -15,19 +23,7 @@ export async function getBooks() {
         throw new Error("Failed to fetch books");
     }
     const data: BookDTO[] = await response.json();
-    const books = data.map((book) => ({
-        id: book.id,
-        name: book.name,
-        author: book.author,
-        editor: book.editor,
-        year: book.year,
-        read: book.read,
-        favorite: book.favorite,
-        rating: book.rating,
-        cover: book.cover,
-        theme: normalizeTheme(book.theme),
-    }));
-    return books;
+    return data.map(mapBookDto);
 }
 
 export async function getBooksWithParams(params: Record<string, string | number | boolean>) {
@@ -40,19 +36,7 @@ export async function getBooksWithParams(params: Record<string, string | number 
         throw new Error("Failed to fetch books with parameters");
     }
     const data: BookDTO[] = await response.json();
-    const books = data.map((book) => ({
-        id: book.id,
-        name: book.name,
-        author: book.author,
-        editor: book.editor,
-        year: book.year,
-        read: book.read,
-        favorite: book.favorite,
-        rating: book.rating,
-        cover: book.cover,
-        theme: normalizeTheme(book.theme),
-    }));
-    return books;
+    return data.map(mapBookDto);
 }
 
 export type BookSortKey = "title" | "author" | "theme";
@@ -82,19 +66,7 @@ export async function getBooksFiltered(
         throw new Error("Failed to fetch filtered books");
     }
     const data: BookDTO[] = await response.json();
-    const books = data.map((book) => ({
-        id: book.id,
-        name: book.name,
-        author: book.author,
-        editor: book.editor,
-        year: book.year,
-        read: book.read,
-        favorite: book.favorite,
-        rating: book.rating,
-        cover: book.cover,
-        theme: normalizeTheme(book.theme),
-    }));
-    return books;
+    return data.map(mapBookDto);
 }
 
 
@@ -105,10 +77,7 @@ export async function getBookById(id: number) {
         throw new Error("Book not found")
     }
     const data: BookDTO = await response.json();
-    return {
-        ...data,
-        theme: normalizeTheme(data.theme),
-    } as Book;
+    return mapBookDto(data);
 }
 
 export async function addBook(book: Omit<Book, "id">) {
@@ -123,10 +92,7 @@ export async function addBook(book: Omit<Book, "id">) {
         throw new Error("Failed to add book");
     }
     const data: BookDTO = await response.json();
-    return {
-        ...data,
-        theme: normalizeTheme(data.theme),
-    } as Book;
+    return mapBookDto(data);
 }
 
 export async function updateBook(id: number, updates: Partial<Book>) {
@@ -141,10 +107,7 @@ export async function updateBook(id: number, updates: Partial<Book>) {
         throw new Error("Failed to update book");
     }
     const data: BookDTO = await response.json();
-    return {
-        ...data,
-        theme: normalizeTheme(data.theme),
-    } as Book;
+    return mapBookDto(data);
 }
 
 export async function deleteBook(id: number) {
