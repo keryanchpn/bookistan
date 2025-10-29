@@ -1,15 +1,25 @@
-import { useEffect, useState } from "react";
-import { ActivityIndicator, ScrollView, StyleSheet, Text, View } from "react-native";
-import { useLocalSearchParams } from "expo-router";
 import { Book } from "@/model/Book";
-import { getBookById } from "@/service/BookService";
+import { getBookById, updateBook } from "@/service/BookService";
+import { Ionicons } from "@expo/vector-icons";
+import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import { useLocalSearchParams } from "expo-router";
+import { ComponentProps, useEffect, useState } from "react";
+import { ActivityIndicator, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
 
 export default function BookDetailScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const [book, setBook] = useState<Book | null>(null);
   const [loading, setLoading] = useState(true);
+  const [favIconName, setFavIconName] = useState<ComponentProps<typeof MaterialIcons>["name"]>("favorite-outline");
+  const [readIconName, setReadIconName] = useState<ComponentProps<typeof Ionicons>["name"]>("checkmark-done-circle-outline");
 
   useEffect(() => {
+    if (id){
+      loadBook(id);
+    }
+  }, [id]);
+
+  const loadBook = async (bookId: string) => {
     if (!id) {
       setLoading(false);
       return;
@@ -18,7 +28,28 @@ export default function BookDetailScreen() {
       setBook(fetchedBook);
       setLoading(false);
     });
-  }, [id]);
+  };
+
+  useEffect(() => {
+    if (book) {
+      setFavIconName(book.favorite ? "favorite" : "favorite-outline");
+      setReadIconName(book.read ? "checkmark-done-circle" : "checkmark-done-circle-outline");
+    }
+  }, [book]);
+
+  const setFavorite = async () => {
+    if(!book) return;
+    book.favorite = !book.favorite;
+    await updateBook(book.id, { favorite: book.favorite });
+    loadBook(String(book.id));
+  };
+
+  const setRead = async () => {
+    if(!book) return;
+    book.read = !book.read;
+    await updateBook(book.id, { read: book.read });
+    loadBook(String(book.id));
+  };
 
   if (loading) {
     return (
@@ -38,8 +69,20 @@ export default function BookDetailScreen() {
 
   return (
     <ScrollView contentContainerStyle={styles.content} showsVerticalScrollIndicator={false}>
-      <Text style={styles.title}>{book.name}</Text>
-      <Text style={styles.author}>{book.author}</Text>
+      <View style={styles.header}>
+        <View>
+          <Text style={styles.title}>{book.name}</Text>
+          <Text style={styles.author}>{book.author}</Text>
+        </View>
+        <View style={{ flexDirection: "row" }}>
+          <Pressable onPress={setFavorite}>
+            <MaterialIcons name={favIconName} size={30} color={book.favorite ? "#FF6B6B" : "#CBD5E1"} />
+          </Pressable>
+          <Pressable onPress={setRead}>
+            <Ionicons name={readIconName} size={30} color={book.read ? "#34C759" : "#CBD5E1"} />
+          </Pressable>
+        </View>
+      </View>
 
       <View style={styles.section}>
         <InfoRow label="Éditeur" value={book.editor} />
@@ -120,5 +163,10 @@ const styles = StyleSheet.create({
     fontSize: 16,
     fontWeight: "500",
     color: "#9B1B30",
+  },
+  header: {
+    flexDirection: "row",
+    justifyContent: "space-between",
+    alignItems: "center",
   },
 });
