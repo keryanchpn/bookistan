@@ -30,13 +30,52 @@ export async function getBooks() {
     return books;
 }
 
-export async function getBooksFiltered(read: boolean | null, favorite: boolean | null) {
+export async function getBooksWithParams(params: Record<string, string | number | boolean>) {
+    const queryParams = new URLSearchParams();
+    for (const key in params) {
+        queryParams.append(key, params[key].toString());
+    }
+    const response = await fetch(`${API_URL}/books?${queryParams.toString()}`);
+    if (!response.ok) {
+        throw new Error("Failed to fetch books with parameters");
+    }
+    const data: BookDTO[] = await response.json();
+    const books = data.map((book) => ({
+        id: book.id,
+        name: book.name,
+        author: book.author,
+        editor: book.editor,
+        year: book.year,
+        read: book.read,
+        favorite: book.favorite,
+        rating: book.rating,
+        cover: book.cover,
+        theme: normalizeTheme(book.theme),
+    }));
+    return books;
+}
+
+export type BookSortKey = "title" | "author" | "theme";
+export type SortOrder = "asc" | "desc";
+
+export async function getBooksFiltered(
+    read: boolean | null,
+    favorite: boolean | null,
+    sort?: BookSortKey,
+    order?: SortOrder,
+) {
     const params = new URLSearchParams();
     if (read !== null) {
         params.append("read", read.toString());
     }
     if (favorite !== null) {
         params.append("favorite", favorite.toString());
+    }
+    if (sort) {
+        params.append("sort", sort);
+    }
+    if (order) {
+        params.append("order", order);
     }
     const response = await fetch(`${API_URL}/books?${params.toString()}`);
     if (!response.ok) {
@@ -57,6 +96,8 @@ export async function getBooksFiltered(read: boolean | null, favorite: boolean |
     }));
     return books;
 }
+
+
 
 export async function getBookById(id: number) {
     const response = await fetch(`${API_URL}/books/${id}`);
@@ -143,6 +184,7 @@ export async function addBookComment(bookId: number, content: string) {
 // Code créé par l'ia pour récupérer un isbn via l'api open library
 
 const OPEN_LIBRARY_ROOT = "https://openlibrary.org";
+const OPEN_LIBRARY_COVER_ROOT = "https://covers.openlibrary.org";
 type OpenLibraryDoc = {
   isbn?: string[];
   edition_key?: string[];
@@ -201,4 +243,25 @@ export async function fetchIsbnByTitleAuthor(
     }
   }
   return null;
+}
+
+export async function fetchCoverUrlByIsbn(
+  isbn: string,
+  size: "S" | "M" | "L" = "L",
+): Promise<string | null> {
+  const trimmedIsbn = isbn.trim();
+  if (!trimmedIsbn) {
+    return null;
+  }
+
+  const url = `${OPEN_LIBRARY_COVER_ROOT}/b/isbn/${encodeURIComponent(trimmedIsbn)}-${size}.jpg?default=false`;
+  try {
+    const response = await fetch(url);
+    if (!response.ok) {
+      return null;
+    }
+    return url;
+  } catch {
+    return null;
+  }
 }

@@ -1,13 +1,15 @@
 import BookFormModal from "@/component/bookFormModal";
 import { Book } from "@/model/Book";
 import { Comment } from "@/model/Comment";
-import { addBookComment, deleteBook, fetchIsbnByTitleAuthor, getBookById, getBookComments, updateBook } from "@/service/BookService";
+import { addBookComment, deleteBook, getBookById, getBookComments, updateBook } from "@/service/BookService";
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ComponentProps, useEffect, useState } from "react";
-import { ActivityIndicator, Alert, Image, ImageSourcePropType, Pressable, ScrollView, StyleSheet, Text, TextInput, View } from "react-native";
-import coverNotFound from "@/assets/images/cover-not-found.png";
+import { ActivityIndicator, Alert, Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import * as ImagePicker from "expo-image-picker";
+import { useBookCover } from "@/hooks/useBookCover";
+import CommentSection from "@/component/CommentSection";
 export default function BookDetailScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const [book, setBook] = useState<Book | null>(null);
@@ -17,8 +19,8 @@ export default function BookDetailScreen() {
   const [favIconName, setFavIconName] = useState<ComponentProps<typeof MaterialIcons>["name"]>("favorite-outline");
   const [readIconName, setReadIconName] = useState<ComponentProps<typeof Ionicons>["name"]>("checkmark-done-circle-outline");
   const [isModalVisible, setModalVisible] = useState(false);
-  const [codeISBN, setCodeISBN] = useState<string>("");
-  const [coverSource, setCoverSource] = useState<ImageSourcePropType | null>(coverNotFound);
+  const { isbn, coverSource } = useBookCover(book);
+  const [localCoverUri, setLocalCoverUri] = useState<string | null>(null);
 
   const router = useRouter();
 
@@ -77,54 +79,39 @@ export default function BookDetailScreen() {
       loadComments();
       setFavIconName(book.favorite ? "favorite" : "favorite-outline");
       setReadIconName(book.read ? "checkmark-done-circle" : "checkmark-done-circle-outline");
-      setCodeISBN("");
-      fetchIsbnByTitleAuthor(book.name, book.author)
-        .then((isbn) => {
-          setCodeISBN(isbn ?? "");
-        })
-        .catch(() => setCodeISBN(""));
     } else {
-      setCodeISBN("");
+      setFavIconName("favorite-outline");
+      setReadIconName("checkmark-done-circle-outline");
     }
   }, [book]);
 
   useEffect(() => {
-    if (!book) {
-      setCoverSource(coverNotFound);
-      return;
-    }
+    setLocalCoverUri(null);
+  }, [book?.id]);
 
-    if (!codeISBN) {
-      setCoverSource(coverNotFound);
-      return;
-    }
+  const displayedCover = localCoverUri ? { uri: localCoverUri } : coverSource;
 
-    let cancelled = false;
-    const checkCover = async () => {
-      const url = `https://covers.openlibrary.org/b/isbn/${codeISBN}-L.jpg?default=false`;
-      try {
-        const response = await fetch(url);
-        if (cancelled) {
-          return;
-        }
-        if (response.ok) {
-          setCoverSource({ uri: url });
-        } else {
-          setCoverSource(coverNotFound);
-        }
-      } catch {
-        if (!cancelled) {
-          setCoverSource(coverNotFound);
-        }
+  const handleSelectCover = async () => {
+    try {
+      const { granted } = await ImagePicker.requestMediaLibraryPermissionsAsync();
+      if (!granted) {
+        Alert.alert("Accès refusé", "Activez l'accès à la bibliothèque pour changer la couverture.");
+        return;
       }
-    };
 
-    setCoverSource(coverNotFound);
-    checkCover();
-    return () => {
-      cancelled = true;
-    };
-  }, [book, codeISBN]);
+      const result = await ImagePicker.launchImageLibraryAsync({
+        mediaTypes: ["images"],
+        quality: 0.8,
+      });
+
+      if (!result.canceled && result.assets && result.assets.length > 0) {
+        setLocalCoverUri(result.assets[0].uri);
+      }
+    } catch (error) {
+      console.error("Image picker error", error);
+      Alert.alert("Erreur", "Impossible de sélectionner une image pour le moment.");
+    }
+  };
 
   const setFavorite = async () => {
     if(!book) return;
@@ -184,18 +171,19 @@ export default function BookDetailScreen() {
 
       <View style={styles.section}>
         <View style={styles.coverRow}>
-          {coverSource ? (
-            <Image source={coverSource} style={styles.coverImage} />
-          ) : (
-            <View style={[styles.coverImage, styles.coverPlaceholder]} />
-          )}
+          <Pressable style={styles.coverWrapper} onPress={handleSelectCover}>
+            <Image source={displayedCover} style={styles.coverImage} />
+            <View style={styles.coverOverlay}>
+              <Text style={styles.coverOverlayText}>+</Text>
+            </View>
+          </Pressable>
           <View style={styles.coverInfo}>
             <Text style={styles.coverInfoTitle}>Informations</Text>
             <View style={styles.infoList}>
               <InfoRow label="Éditeur" value={book.editor} />
               <InfoRow label="Année" value={String(book.year)} />
               <InfoRow label="Thème" value={book.theme} />
-              {codeISBN ? <InfoRow label="ISBN" value={codeISBN} /> : null}
+              {isbn ? <InfoRow label="ISBN" value={isbn} /> : null}
               <View style={styles.stars}>
                 {Array.from({ length: 5 }, (_, i) => (
                   <Pressable key={i} onPress={() => setRating(i + 1)}>
@@ -228,23 +216,12 @@ export default function BookDetailScreen() {
           <Text style={{ color: "#9B1B30", fontWeight: "600", textAlign: "center" }}>Supprimer le livre</Text>
         </Pressable>
       </View>
-      <View style={styles.section}>
-        <Text style={{ fontSize: 18, fontWeight: "600", color: "#1F2933", marginBottom: 8 }}>Commentaires</Text>
-        {comments.length === 0 ? (
-          <Text style={{ color: "#52606D" }}>Aucun commentaire pour ce livre.</Text>
-        ) : (
-          comments.map((comment) => (
-            <View key={comment.id} style={{ marginBottom: 12 }}>
-              <Text style={{ color: "#3E4C59" }}>{comment.content}</Text>
-              <Text style={{ color: "#9CA3AF", fontSize: 12 }}>{new Date(comment.dateISO).toLocaleDateString()}</Text>
-            </View>
-          ))
-        )}
-        <TextInput style={styles.input} placeholder="Ajouter un commentaire..." value={newComment} onChangeText={setNewComment} />
-        <Pressable onPress={addComment} style={styles.button}>
-          <Text style={styles.buttonText}>Envoyer le commentaire</Text>
-        </Pressable>
-      </View>
+      <CommentSection
+        comments={comments}
+        newComment={newComment}
+        setNewComment={setNewComment}
+        onSubmit={addComment}
+      />
 
     </ScrollView>
   );
@@ -326,27 +303,6 @@ const styles = StyleSheet.create({
     justifyContent: "space-between",
     alignItems: "center",
   },
-  input: {
-    borderWidth: 1,
-    borderColor: "#D0D5DD",
-    borderRadius: 12,
-    paddingHorizontal: 14,
-    paddingVertical: 12,
-    backgroundColor: "#F8FAFC",
-    fontSize: 14,
-    marginTop: 8,
-  },
-  button: {
-    backgroundColor: "#2563EB",
-    padding: 12,
-    borderRadius: 8,
-    alignItems: "center",
-  },
-  buttonText: {
-    color: "#FFFFFF",
-    fontSize: 16,
-    fontWeight: "600",
-  },
   stars: {
     flexDirection: "row",
     gap: 4,
@@ -357,15 +313,31 @@ const styles = StyleSheet.create({
     gap: 16,
     alignItems: "stretch",
   },
+  coverWrapper: {
+    position: "relative",
+  },
   coverImage: {
     width: 110,
     height: 165,
     borderRadius: 10,
     backgroundColor: "#E2E8F0",
   },
-  coverPlaceholder: {
-    justifyContent: "center",
+  coverOverlay: {
+    position: "absolute",
+    right: 6,
+    bottom: 6,
+    backgroundColor: "rgba(37, 99, 235, 0.9)",
+    borderRadius: 999,
+    width: 28,
+    height: 28,
     alignItems: "center",
+    justifyContent: "center",
+  },
+  coverOverlayText: {
+    color: "#FFFFFF",
+    fontSize: 18,
+    fontWeight: "600",
+    lineHeight: 20,
   },
   coverInfo: {
     flex: 1,
