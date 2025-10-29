@@ -1,28 +1,50 @@
-import { Stack } from "expo-router";
-import { Image } from "react-native";
-
+import { HapticTab } from "@/app-example/components/haptic-tab";
+import { Ionicons } from "@expo/vector-icons";
+import { Tabs } from "expo-router";
 
 export default function RootLayout() {
   return (
-    <Stack
+    <Tabs
       screenOptions={{
-        headerShown: true,
-      }}
-    >
-      <Stack.Screen
+        tabBarActiveTintColor: '#007AFF',
+        headerShown: false,
+        tabBarButton: HapticTab,
+      }}>
+      <Tabs.Screen
         name="index"
         options={{
-          headerTitle: "Bookistan",
-          headerLeft: () => (
-            <Image
-              source={require("@/assets/images/bookistan.png")}
-              style={{ width: 35, height: 35 }}
-              resizeMode="contain"
-            />
-          ),
+          title: 'Home',
+          tabBarIcon: ({ color }) => <Ionicons size={28} name="home" color={color} />,
         }}
       />
-      <Stack.Screen name="(pages)" options={{ headerShown: false }} />
-    </Stack>
+      <Tabs.Screen
+        name="(pages)"
+        options={{
+          title: 'Books',
+          tabBarLabel: 'Livres',
+          tabBarIcon: ({ color }) => <Ionicons size={28} name="book" color={color} />,
+        }}
+      />
+    </Tabs>
+    // <Stack
+    //   screenOptions={{
+    //     headerShown: true,
+    //   }}
+    // >
+    //   <Stack.Screen
+    //     name="index"
+    //     options={{
+    //       headerTitle: "Bookistan",
+    //       headerLeft: () => (
+    //         <Image
+    //           source={require("@/assets/images/bookistan.png")}
+    //           style={{ width: 35, height: 35 }}
+    //           resizeMode="contain"
+    //         />
+    //       ),
+    //     }}
+    //   />
+    //   <Stack.Screen name="(pages)" options={{ headerShown: false }} />
+    // </Stack>
   );
 }
