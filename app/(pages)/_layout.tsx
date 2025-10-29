@@ -14,7 +14,7 @@ export default function RootLayout() {
         }}
       />
       <Stack.Screen
-        name="bookDetail"
+        name="bookDetail/[id]"
         options={{
           headerTitle: "Détail du livre",
         }}
