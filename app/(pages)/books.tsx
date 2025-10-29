@@ -1,10 +1,12 @@
-import { FlatList, Text, View, StyleSheet, Pressable, Modal } from "react-native";
-import { useCallback, useEffect, useState } from "react";
+import { FlatList, Text, View, StyleSheet, Pressable } from "react-native";
+import { use, useCallback, useState } from "react";
 import { Book } from "@/model/Book";
 import { getBooks } from "@/service/BookService";
 import BookListDetail from "@/component/BookListDetail";
 import { useRouter } from "expo-router";
-import AddBook from "./addBook";
+import BookFormModal from "@/component/bookFormModal";
+import { useFocusEffect } from "expo-router";
+
 
 export default function Books() {
   const [books, setBooks] = useState<Book[]>([]);
@@ -14,18 +16,23 @@ export default function Books() {
   const router = useRouter();
 
   const loadBooks = useCallback(async () => {
+    setLoading(true);
     try {
       const data = await getBooks();
       setBooks(data);
-      setLoading(false);
     } catch (err) {
       console.error("Failed to load books", err);
+    } finally {
+      setLoading(false);
     }
   }, []);
 
-  useEffect(() => {
-    loadBooks();
-  }, [loadBooks]);
+  useFocusEffect(
+    useCallback(() => {
+      loadBooks();
+    }, [loadBooks])
+  );
+
 
   return (
     <View style={styles.container}>
@@ -39,21 +46,13 @@ export default function Books() {
         </Pressable>
       </View>
 
-      <Modal
-        animationType="fade"
-        transparent
-        visible={isModalVisible}
-        onRequestClose={() => setModalVisible(false)}
-      >
-        <View style={styles.modalOverlay}>
-          <View style={styles.modalCard}>
-            <AddBook
-              onClose={() => setModalVisible(false)}
-              onSuccess={loadBooks}
-            />
-          </View>
-        </View>
-      </Modal>
+      <BookFormModal
+        isModalVisible={isModalVisible}
+        setModalVisible={setModalVisible}
+        onSuccess={loadBooks}
+      />
+
+      
       {loading ? (
         <Text>Chargement des livres... ( l'api peut prendre du temps à se reveiller )</Text>
       ) : books.length === 0 ? (
@@ -121,18 +120,5 @@ const styles = StyleSheet.create({
   },
   separator: {
     height: 10,
-  },
-  modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(15, 23, 42, 0.4)",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  modalCard: {
-    width: "100%",
-    maxWidth: 420,
-    borderRadius: 20,
-    overflow: "hidden",
   },
 });
