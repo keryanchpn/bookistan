@@ -6,10 +6,12 @@ import { FontAwesome, Ionicons } from "@expo/vector-icons";
 import MaterialIcons from '@expo/vector-icons/MaterialIcons';
 import { useLocalSearchParams, useRouter } from "expo-router";
 import { ComponentProps, useCallback, useEffect, useState } from "react";
-import { ActivityIndicator, Alert, Image, Pressable, ScrollView, StyleSheet, Text, View } from "react-native";
+import { ActivityIndicator, Alert, Image, Pressable, ScrollView, Text, View } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useBookCover } from "@/hooks/useBookCover";
 import CommentSection from "@/component/CommentSection";
+import { bookDetailStyles as styles } from "@/styles/bookDetailStyles";
+import { theme } from "@/theme";
 export default function BookDetailScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const [book, setBook] = useState<Book | null>(null);
@@ -146,7 +148,7 @@ export default function BookDetailScreen() {
   if (loading) {
     return (
       <View style={styles.centered}>
-        <ActivityIndicator size="large" color="#3E4C59" />
+        <ActivityIndicator size="large" color={theme.colors.text.primary} />
       </View>
     );
   }
@@ -166,12 +168,20 @@ export default function BookDetailScreen() {
           <Text style={styles.title}>{book.name}</Text>
           <Text style={styles.author}>{book.author}</Text>
         </View>
-        <View style={{ flexDirection: "row" }}>
+        <View style={styles.iconRow}>
           <Pressable onPress={setFavorite}>
-            <MaterialIcons name={favIconName} size={30} color={book.favorite ? "#FF6B6B" : "#CBD5E1"} />
+            <MaterialIcons
+              name={favIconName}
+              size={30}
+              color={book.favorite ? theme.colors.icon.favorite : theme.colors.icon.muted}
+            />
           </Pressable>
           <Pressable onPress={setRead}>
-            <Ionicons name={readIconName} size={30} color={book.read ? "#34C759" : "#CBD5E1"} />
+            <Ionicons
+              name={readIconName}
+              size={30}
+              color={book.read ? theme.colors.icon.read : theme.colors.icon.muted}
+            />
           </Pressable>
         </View>
       </View>
@@ -197,7 +207,7 @@ export default function BookDetailScreen() {
                     <FontAwesome
                       name={i < Math.round(book.rating) ? "star" : "star-o"}
                       size={30}
-                      color="#FBBF24"
+                      color={theme.colors.rating.star}
                     />
                   </Pressable>
                 ))}
@@ -215,12 +225,12 @@ export default function BookDetailScreen() {
       />
 
       <View>
-        <Pressable onPress={() => setModalVisible(true)} style={styles.section}>
-          <Text style={{ color: "#2563EB", fontWeight: "600", textAlign: "center" }}>Modifier le livre</Text>
+        <Pressable onPress={() => setModalVisible(true)} style={styles.actionSection}>
+          <Text style={styles.primaryActionText}>Modifier le livre</Text>
         </Pressable>
         <View style={styles.spaced}></View>
-        <Pressable onPress={() => deleteBookAndRedirect(book.id)} style={styles.section}>
-          <Text style={{ color: "#9B1B30", fontWeight: "600", textAlign: "center" }}>Supprimer le livre</Text>
+        <Pressable onPress={() => deleteBookAndRedirect(book.id)} style={styles.actionSection}>
+          <Text style={styles.deleteActionText}>Supprimer le livre</Text>
         </Pressable>
       </View>
       <CommentSection
@@ -247,118 +257,3 @@ function InfoRow({ label, value }: InfoRowProps) {
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  spaced: {
-    marginBottom: 12,
-  },
-  centered: {
-    flex: 1,
-    alignItems: "center",
-    justifyContent: "center",
-    padding: 16,
-  },
-  content: {
-    padding: 20,
-    gap: 16,
-    backgroundColor: "#F4F6F8",
-    flexGrow: 1,
-  },
-  title: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#1F2933",
-  },
-  author: {
-    fontSize: 16,
-    fontWeight: "500",
-    color: "#52606D",
-  },
-  section: {
-    backgroundColor: "#fff",
-    borderRadius: 12,
-    padding: 16,
-    gap: 12,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 2 },
-    shadowOpacity: 0.08,
-    shadowRadius: 4,
-    elevation: 2,
-  },
-  row: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  rowLabel: {
-    fontSize: 14,
-    fontWeight: "600",
-    color: "#3E4C59",
-  },
-  rowValue: {
-    fontSize: 14,
-    fontWeight: "400",
-    color: "#52606D",
-  },
-  errorText: {
-    fontSize: 16,
-    fontWeight: "500",
-    color: "#9B1B30",
-  },
-  header: {
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  stars: {
-    flexDirection: "row",
-    gap: 4,
-    justifyContent: "space-around"
-  },
-  coverRow: {
-    flexDirection: "row",
-    gap: 16,
-    alignItems: "stretch",
-  },
-  coverWrapper: {
-    position: "relative",
-  },
-  coverImage: {
-    width: 110,
-    height: 165,
-    borderRadius: 10,
-    backgroundColor: "#E2E8F0",
-  },
-  coverOverlay: {
-    position: "absolute",
-    right: 6,
-    bottom: 6,
-    backgroundColor: "rgba(37, 99, 235, 0.9)",
-    borderRadius: 999,
-    width: 28,
-    height: 28,
-    alignItems: "center",
-    justifyContent: "center",
-  },
-  coverOverlayText: {
-    color: "#FFFFFF",
-    fontSize: 18,
-    fontWeight: "600",
-    lineHeight: 20,
-  },
-  coverInfo: {
-    flex: 1,
-    gap: 12,
-  },
-  coverInfoTitle: {
-    fontSize: 16,
-    fontWeight: "700",
-    color: "#1F2933",
-  },
-  infoList: {
-    gap: 10,
-  },
-  ratingRow: {
-    alignItems: "center",
-  },
-});

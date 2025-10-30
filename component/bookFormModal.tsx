@@ -1,7 +1,7 @@
-import { Modal, StyleSheet } from "react-native";
-import { View } from "react-native";
+import { Modal, View } from "react-native";
 import AddBook from "@/app/(pages)/addBook";
 import { Book } from "@/model/Book";
+import { bookFormModalStyles as styles } from "@/styles/bookFormModalStyles";
 
 type BookFormModalProps = {
     isModalVisible: boolean;
@@ -29,18 +29,3 @@ export default function BookFormModal({ isModalVisible, setModalVisible, onSucce
             </Modal>
     );
 }
-const styles = StyleSheet.create({
-    modalOverlay: {
-    flex: 1,
-    backgroundColor: "rgba(15, 23, 42, 0.4)",
-    justifyContent: "center",
-    alignItems: "center",
-    padding: 20,
-  },
-  modalCard: {
-    width: "100%",
-    maxWidth: 420,
-    borderRadius: 20,
-    overflow: "hidden",
-  },
-});

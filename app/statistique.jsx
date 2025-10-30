@@ -3,14 +3,14 @@ import { useCallback, useState } from "react";
 import {
   ActivityIndicator,
   Dimensions,
-  Platform,
   ScrollView,
-  StyleSheet,
   Text,
   View,
 } from "react-native";
 import { PieChart } from "react-native-chart-kit";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { statistiqueStyles as styles } from "@/styles/statistiqueStyles";
+import { theme } from "@/theme";
 import { getStatistics } from "../service/BookService";
 
 const screenWidth = Dimensions.get("window").width;
@@ -48,27 +48,23 @@ export default function Statistique() {
     typeof stats?.averageRating === "number"
       ? stats.averageRating.toFixed(1)
       : null;
-  const legendFontFamily = Platform.select({
-    ios: "HelveticaNeue-Medium",
-    android: "Roboto-Medium",
-    default: "System",
-  });
+  const legendFontFamily = theme.fonts.medium ?? "System";
 
   const data = [
     {
       name: "Livres lus",
       population: readCount,
-      color: "#34D399",
-      legendFontColor: "#0F172A",
-      legendFontSize: 14,
+      color: theme.colors.chart.read,
+      legendFontColor: theme.colors.text.primary,
+      legendFontSize: theme.typography.body,
       legendFontFamily,
     },
     {
       name: "Livres non lus",
       population: unreadCount,
-      color: "#FB7185",
-      legendFontColor: "#0F172A",
-      legendFontSize: 14,
+      color: theme.colors.chart.unread,
+      legendFontColor: theme.colors.text.primary,
+      legendFontSize: theme.typography.body,
       legendFontFamily,
     },
   ];
@@ -105,7 +101,7 @@ export default function Statistique() {
           <Text style={styles.cardTitle}>Répartition de lecture</Text>
           {loading && (
             <View style={styles.stateContainer}>
-              <ActivityIndicator size="large" color="#2563EB" />
+              <ActivityIndicator size="large" color={theme.colors.primary} />
               <Text style={styles.stateText}>
                 Chargement des statistiques...
               </Text>
@@ -125,10 +121,11 @@ export default function Statistique() {
                 width={chartWidth}
                 height={180}
                 chartConfig={{
-                  backgroundColor: "#EEF2FF",
-                  backgroundGradientFrom: "#EEF2FF",
-                  backgroundGradientTo: "#E0E7FF",
-                  color: (opacity = 1) => `rgba(15, 23, 42, ${opacity})`,
+                  backgroundColor: theme.colors.chart.background,
+                  backgroundGradientFrom: theme.colors.chart.background,
+                  backgroundGradientTo: theme.colors.chart.gradientTo,
+                  color: (opacity = 1) =>
+                    `rgba(${theme.colors.text.primaryRgb}, ${opacity})`,
                 }}
                 accessor="population"
                 backgroundColor="transparent"
@@ -153,9 +150,7 @@ export default function Statistique() {
 
         <View style={styles.card}>
           <Text style={styles.cardTitle}>Moyenne de notation</Text>
-          <Text style={styles.averageValue}>
-            {averageRating ?? "—"}
-          </Text>
+          <Text style={styles.averageValue}>{averageRating ?? "—"}</Text>
           <Text style={styles.cardDescription}>
             Ce score correspond à la note moyenne attribuée à vos lectures.
           </Text>
@@ -164,107 +159,3 @@ export default function Statistique() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#F4F6F8",
-  },
-  scrollContent: {
-    paddingHorizontal: 16,
-    paddingTop: 24,
-    paddingBottom: 32,
-    gap: 20,
-  },
-  header: {
-    gap: 6,
-  },
-  title: {
-    fontSize: 28,
-    fontWeight: "700",
-    color: "#0F172A",
-  },
-  subtitle: {
-    fontSize: 15,
-    color: "#475569",
-  },
-  highlightRow: {
-    flexDirection: "row",
-    flexWrap: "wrap",
-    gap: 12,
-  },
-  highlightCard: {
-    flex: 1,
-    minWidth: 120,
-    paddingVertical: 16,
-    paddingHorizontal: 18,
-    borderRadius: 16,
-    shadowColor: "#0F172A",
-    shadowOpacity: 0.08,
-    shadowRadius: 12,
-    shadowOffset: { width: 0, height: 4 },
-    elevation: 2,
-  },
-  highlightPrimary: {
-    backgroundColor: "#2563EB",
-  },
-  highlightSuccess: {
-    backgroundColor: "#34D399",
-  },
-  highlightWarning: {
-    backgroundColor: "#FBBF24",
-  },
-  highlightLabel: {
-    fontSize: 13,
-    color: "#F8FAFC",
-    marginBottom: 6,
-  },
-  highlightValue: {
-    fontSize: 24,
-    fontWeight: "700",
-    color: "#FFFFFF",
-  },
-  card: {
-    backgroundColor: "#FFFFFF",
-    borderRadius: 20,
-    padding: 20,
-    shadowColor: "#0F172A",
-    shadowOpacity: 0.06,
-    shadowRadius: 16,
-    shadowOffset: { width: 0, height: 6 },
-    elevation: 3,
-    gap: 16,
-  },
-  cardTitle: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#0F172A",
-  },
-  cardDescription: {
-    fontSize: 14,
-    color: "#64748B",
-    lineHeight: 20,
-  },
-  averageValue: {
-    fontSize: 48,
-    fontWeight: "700",
-    color: "#2563EB",
-    textAlign: "center",
-  },
-  stateContainer: {
-    alignItems: "center",
-    justifyContent: "center",
-    gap: 12,
-    paddingVertical: 24,
-  },
-  stateText: {
-    fontSize: 14,
-    color: "#475569",
-    textAlign: "center",
-  },
-  errorText: {
-    fontSize: 14,
-    color: "#DC2626",
-    textAlign: "center",
-  },
-});

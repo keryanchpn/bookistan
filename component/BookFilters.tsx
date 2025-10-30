@@ -1,6 +1,8 @@
 import { Dispatch, SetStateAction } from "react";
-import { Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Pressable, Text, TextInput, View } from "react-native";
 import { BookSortKey, SortOrder } from "@/service/BookService";
+import { bookFiltersStyles as styles } from "@/styles/bookFiltersStyles";
+import { theme } from "@/theme";
 
 type Props = {
   isFilteredByRead: boolean | null;
@@ -41,7 +43,7 @@ const BookFilters = ({
           value={searchQuery}
           onChangeText={setSearchQuery}
           placeholder="Rechercher un livre"
-          placeholderTextColor="#94A3B8"
+          placeholderTextColor={theme.colors.placeholder}
         />
         {searchQuery.length > 0 ? (
           <Pressable
@@ -117,83 +119,5 @@ const BookFilters = ({
     </View>
   );
 };
-
-const styles = StyleSheet.create({
-  filterSection: {
-    marginBottom: 16,
-    paddingVertical: 8,
-    gap: 12,
-  },
-  searchContainer: {
-    width: "100%",
-    position: "relative",
-    marginBottom: 12,
-  },
-  searchInput: {
-    width: "100%",
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: "#CBD5E1",
-    paddingHorizontal: 16,
-    paddingVertical: 10,
-    backgroundColor: "#FFFFFF",
-    fontSize: 14,
-    color: "#1E293B",
-  },
-  clearButton: {
-    position: "absolute",
-    right: 12,
-    top: "50%",
-    transform: [{ translateY: -12 }],
-    width: 24,
-    height: 24,
-    borderRadius: 12,
-    alignItems: "center",
-    justifyContent: "center",
-    backgroundColor: "#E2E8F0",
-  },
-  clearButtonText: {
-    color: "#475569",
-    fontSize: 16,
-    fontWeight: "600",
-  },
-  filterRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    flexWrap: "wrap",
-    gap: 8,
-  },
-  sortRow: {
-    flexWrap: "wrap",
-  },
-  filterButton: {
-    paddingVertical: 8,
-    paddingHorizontal: 14,
-    borderRadius: 999,
-    borderWidth: 1,
-    borderColor: "#CBD5E1",
-    backgroundColor: "#FFFFFF",
-  },
-  filterButtonActive: {
-    backgroundColor: "#2563EB",
-    borderColor: "#2563EB",
-  },
-  filterButtonText: {
-    fontSize: 13,
-    fontWeight: "500",
-    color: "#1F2937",
-  },
-  filterButtonTextActive: {
-    color: "#FFFFFF",
-  },
-  filterLabel: {
-    fontSize: 13,
-    fontWeight: "600",
-    color: "#475569",
-  },
-  filterLabelSpacing: {
-    marginLeft: 8,
-  },
-});
 
 export default BookFilters;

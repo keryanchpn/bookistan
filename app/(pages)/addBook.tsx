@@ -2,7 +2,9 @@ import { Book, BookTheme } from "@/model/Book";
 import { addBook, updateBook } from "@/service/BookService";
 import { Picker } from "@react-native-picker/picker";
 import { useEffect, useMemo, useState } from "react";
-import { Platform, Pressable, StyleSheet, Text, TextInput, View } from "react-native";
+import { Platform, Pressable, Text, TextInput, View } from "react-native";
+import { addBookStyles as styles } from "@/styles/addBookStyles";
+import { theme as appTheme } from "@/theme";
 
 type AddBookProps = {
   onClose?: () => void;
@@ -138,7 +140,7 @@ export default function AddBook({ onClose, onSuccess, book }: AddBookProps) {
           <Picker
             selectedValue={theme}
             onValueChange={(value) => setTheme(value as BookTheme)}
-            dropdownIconColor="#1F2933"
+            dropdownIconColor={appTheme.colors.text.primary}
             mode={Platform.OS === "android" ? "dropdown" : undefined}
             style={[
               styles.pickerGlobal,
@@ -171,114 +173,3 @@ export default function AddBook({ onClose, onSuccess, book }: AddBookProps) {
   );
 }
 
-
-
-const styles = StyleSheet.create({
-    container: {
-        width: "100%",
-        gap: 12,
-        backgroundColor: "#FFFFFF",
-        borderRadius: 16,
-        padding: 20,
-    },
-    headerRow: {
-        flexDirection: "row",
-        alignItems: "center",
-        justifyContent: "space-between",
-        marginBottom: 4,
-    },
-    title: {
-        fontSize: 20,
-        fontWeight: "600",
-        color: "#1F2933",
-    },
-    closeButton: {
-        paddingHorizontal: 12,
-        paddingVertical: 6,
-        borderRadius: 8,
-        backgroundColor: "rgba(15, 23, 42, 0.06)",
-    },
-    closeButtonText: {
-        fontSize: 14,
-        fontWeight: "500",
-        color: "#1F2933",
-    },
-    field: {
-        gap: 6,
-    },
-    label: {
-        fontSize: 14,
-        fontWeight: "500",
-        color: "#1F2933",
-    },
-    input: {
-        width: "100%",
-        borderWidth: 1,
-        borderColor: "#D0D5DD",
-        borderRadius: 12,
-        paddingHorizontal: 14,
-        paddingVertical: 12,
-        backgroundColor: "#F8FAFC",
-        fontSize: 14,
-    },
-    pickerWrapper: {
-        borderWidth: 1,
-        borderColor: "#D0D5DD",
-        borderRadius: 12,
-        overflow: "hidden",
-        backgroundColor: "#F8FAFC",
-        ...Platform.select({
-            android: {
-                height: 48,
-                justifyContent: "center",
-            },
-            web: {
-                height: 48,
-            },
-        }),
-        transitionProperty: "border-color, box-shadow",
-        transitionDuration: "120ms",
-    },
-    pickerWrapperIOS: {
-        paddingVertical: 4,
-    },
-    pickerGlobal: {
-        width: "100%",
-        color: "#1F2933",
-    },
-    pickerIOS: {
-        height: 180,
-    },
-    pickerItemIOS: {
-        color: "#1F2933",
-    },
-    pickerWrapperWeb: {
-        display: "flex",
-    },
-    pickerWeb: {
-        height: "100%",
-    },
-    errorText: {
-        color: "#DC2626",
-        fontSize: 13,
-        fontWeight: "500",
-    },
-    submitButton: {
-        marginTop: 8,
-        backgroundColor: "#2563EB",
-        paddingVertical: 12,
-        borderRadius: 12,
-        alignItems: "center",
-    },
-    submitButtonPressed: {
-        opacity: 0.85,
-    },
-    submitButtonDisabled: {
-        backgroundColor: "#94A3B8",
-    },
-    submitButtonText: {
-        color: "#FFFFFF",
-        fontSize: 16,
-        fontWeight: "600",
-    },
-});

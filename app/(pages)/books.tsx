@@ -1,4 +1,4 @@
-import { FlatList, Text, View, StyleSheet, Pressable } from "react-native";
+import { FlatList, Text, View, Pressable } from "react-native";
 import { useCallback, useEffect, useState } from "react";
 import { Book } from "@/model/Book";
 import { BookSortKey, SortOrder, getBooksWithParams } from "@/service/BookService";
@@ -8,6 +8,7 @@ import BookFormModal from "@/component/bookFormModal";
 import { useFocusEffect } from "expo-router";
 import BookFilters from "@/component/BookFilters";
 import { SafeAreaView } from "react-native-safe-area-context";
+import { booksStyles as styles } from "@/styles/booksStyles";
 
 
 export default function Books() {
@@ -111,9 +112,11 @@ export default function Books() {
 
       
       {loading && showLoadingText ? (
-        <Text>Chargement des livres... ( l'api peut prendre du temps à se reveiller )</Text>
+        <Text style={styles.emptyState}>
+          Chargement des livres... ( l'api peut prendre du temps à se reveiller )
+        </Text>
       ) : !loading && books.length === 0 ? (
-        <Text>
+        <Text style={styles.emptyState}>
           {searchQuery.trim()
             ? "Aucun livre ne correspond à votre recherche."
             : "Aucun livre disponible. Ajoutez-en un !"}
@@ -142,49 +145,3 @@ export default function Books() {
     </SafeAreaView>
   );
 }
-
-const styles = StyleSheet.create({
-  safeArea: {
-    flex: 1,
-    backgroundColor: "#F4F6F8",
-  },
-  container: {
-    flex: 1,
-    padding: 16,
-    backgroundColor: "#F4F6F8",
-  },
-  headerRow: {
-    flexDirection: "row",
-    alignItems: "center",
-    justifyContent: "space-between",
-    marginBottom: 16,
-  },
-  header: {
-    fontSize: 18,
-    fontWeight: "600",
-    color: "#1F2933",
-  },
-  addButton: {
-    backgroundColor: "#2563EB",
-    paddingVertical: 10,
-    paddingHorizontal: 16,
-    borderRadius: 999,
-    shadowColor: "#2563EB",
-    shadowOpacity: 0.2,
-    shadowRadius: 6,
-    shadowOffset: { width: 0, height: 3 },
-    elevation: 2,
-  },
-  addButtonText: {
-    color: "#FFFFFF",
-    fontSize: 14,
-    fontWeight: "600",
-  },
-  listContent: {
-    gap: 10,
-    paddingBottom: 24,
-  },
-  separator: {
-    height: 10,
-  },
-});

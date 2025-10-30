@@ -1,9 +1,11 @@
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
-import { Image, Pressable, StyleSheet, Text, View } from "react-native";
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
+import { Image, Pressable, Text, View } from "react-native";
 import { useBookCover } from "@/hooks/useBookCover";
 import { Book } from "@/model/Book";
 import { updateBook } from "@/service/BookService";
+import { bookListDetailStyles as styles } from "@/styles/bookListDetailStyles";
+import { theme } from "@/theme";
 type BookListDetailProps = {
   book: Book;
   onSuccess?: () => void;
@@ -48,7 +50,7 @@ export default function BookListDetail({ book, onSuccess }: BookListDetailProps)
               <FontAwesome
                 name={index < Math.round(book.rating) ? "star" : "star-o"}
                 size={18}
-                color="#FACC15"
+                color={theme.colors.rating.star}
               />
             </Pressable>
           ))}
@@ -56,71 +58,20 @@ export default function BookListDetail({ book, onSuccess }: BookListDetailProps)
       </View>
       <View style={styles.rightSection}>
         <Pressable onPress={setFavorite}>
-          <MaterialIcons name={favIconName} size={30} color={book.favorite ? "#FF6B6B" : "#CBD5E1"} />
+          <MaterialIcons
+            name={favIconName}
+            size={30}
+            color={book.favorite ? theme.colors.icon.favorite : theme.colors.icon.muted}
+          />
         </Pressable>
         <Pressable onPress={setRead}>
-          <Ionicons name={readIconName} size={30} color={book.read ? "#34C759" : "#CBD5E1"} />
+          <Ionicons
+            name={readIconName}
+            size={30}
+            color={book.read ? theme.colors.icon.read : theme.colors.icon.muted}
+          />
         </Pressable>
       </View>
     </View>
   );
 }
-
-const styles = StyleSheet.create({
-  container: {
-    width: "100%",
-    paddingVertical: 14,
-    paddingHorizontal: 18,
-    backgroundColor: "#ffffff",
-    borderRadius: 10,
-    shadowColor: "#000",
-    shadowOffset: { width: 0, height: 1 },
-    shadowOpacity: 0.06,
-    shadowRadius: 3,
-    elevation: 1,
-    gap: 12,
-    flexDirection: "row",
-    justifyContent: "space-between",
-    alignItems: "center",
-  },
-  coverImage: {
-    width: 50,
-    height: 75,
-    borderRadius: 6,
-    backgroundColor: "#E2E8F0",
-  },
-  title: {
-    fontSize: 16,
-    fontWeight: "600",
-    color: "#1F2933",
-    flexShrink: 1,
-  },
-  author: {
-    fontSize: 14,
-  	fontWeight: "400",
-    color: "#52606D",
-  },
-  theme: {
-    fontSize: 12,
-    fontWeight: "500",
-    color: "#64748B",
-  },
-  leftSection: {
-    flex: 1,
-    alignItems: "flex-start",
-    gap: 6,
-  },
-  rightSection: {
-    flexDirection: "row",
-    gap: 8,
-  },
-  ratingRow: {
-    flexDirection: "row",
-    gap: 4,
-  },
-  year: {
-    fontSize: 13,
-    fontWeight: "500",
-    color: "#3E4C59",
-  },
-});
