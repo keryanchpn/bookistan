@@ -1,8 +1,8 @@
 import { Comment } from "@/model/Comment";
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useMemo } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
-import { commentSectionStyles as styles } from "@/styles/commentSectionStyles";
-import { theme } from "@/theme";
+import { createCommentSectionStyles } from "@/styles/commentSectionStyles";
+import { useTheme } from "@/theme";
 
 type Props = {
   comments: Comment[];
@@ -17,6 +17,8 @@ const CommentSection = ({
   setNewComment,
   onSubmit,
 }: Props) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => createCommentSectionStyles(theme), [theme]);
   return (
     <View style={styles.container}>
       <Text style={styles.title}>Commentaires</Text>

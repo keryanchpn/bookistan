@@ -1,5 +1,5 @@
 import { useFocusEffect } from "expo-router";
-import { useCallback, useState } from "react";
+import { useCallback, useMemo, useState } from "react";
 import {
   ActivityIndicator,
   Dimensions,
@@ -9,8 +9,8 @@ import {
 } from "react-native";
 import { PieChart } from "react-native-chart-kit";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { statistiqueStyles as styles } from "@/styles/statistiqueStyles";
-import { theme } from "@/theme";
+import { createStatistiqueStyles } from "@/styles/statistiqueStyles";
+import { useTheme } from "@/theme";
 import { getStatistics } from "../service/BookService";
 
 const screenWidth = Dimensions.get("window").width;
@@ -20,6 +20,8 @@ export default function Statistique() {
   const [stats, setStats] = useState(null);
   const [loading, setLoading] = useState(true);
   const [error, setError] = useState(null);
+  const { theme } = useTheme();
+  const styles = useMemo(() => createStatistiqueStyles(theme), [theme]);
 
   const fetchStats = useCallback(async () => {
     setLoading(true);
@@ -116,22 +118,24 @@ export default function Statistique() {
 
           {!loading && !error && hasData && (
             <>
-              <PieChart
-                data={data}
-                width={chartWidth}
-                height={180}
-                chartConfig={{
-                  backgroundColor: theme.colors.chart.background,
-                  backgroundGradientFrom: theme.colors.chart.background,
-                  backgroundGradientTo: theme.colors.chart.gradientTo,
-                  color: (opacity = 1) =>
-                    `rgba(${theme.colors.text.primaryRgb}, ${opacity})`,
-                }}
-                accessor="population"
-                backgroundColor="transparent"
-                paddingLeft="0"
-                absolute
-              />
+              <View style={styles.chartWrapper}>
+                <PieChart
+                  data={data}
+                  width={chartWidth}
+                  height={180}
+                  chartConfig={{
+                    backgroundColor: theme.colors.chart.background,
+                    backgroundGradientFrom: theme.colors.chart.background,
+                    backgroundGradientTo: theme.colors.chart.gradientTo,
+                    color: (opacity = 1) =>
+                      `rgba(${theme.colors.text.primaryRgb}, ${opacity})`,
+                  }}
+                  accessor="population"
+                  backgroundColor="transparent"
+                  paddingLeft="0"
+                  absolute
+                />
+              </View>
               <Text style={styles.cardDescription}>
                 Vous avez lu {readCount} livre(s) sur un total de{" "}
                 {totalCount}. Continuez sur cette lancée&nbsp;!

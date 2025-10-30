@@ -4,16 +4,19 @@ import logo from "@/assets/images/bookistan.png";
 import { Book } from "@/model/Book";
 import { getBooksWithParams } from "@/service/BookService";
 import { useFocusEffect, useRouter } from "expo-router";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { FlatList, Image, Pressable, Text, View } from "react-native";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { indexStyles as styles } from "@/styles/indexStyles";
+import { createIndexStyles } from "@/styles/indexStyles";
+import { useTheme } from "@/theme";
 
 export default function Index() {
   const router = useRouter();
   const [unreadBooks, setUnreadBooks] = useState<Book[]>([]);
   const [loading, setLoading] = useState(false);
   const [isModalVisible, setModalVisible] = useState(false);
+  const { theme, toggleTheme, mode } = useTheme();
+  const styles = useMemo(() => createIndexStyles(theme), [theme]);
 
   const loadUnreadBooks = async () => {
     setLoading(true);
@@ -61,6 +64,11 @@ export default function Index() {
         <View style={styles.headerRow}>
           <Image source={logo} style={styles.logo} />
           <Text style={styles.brand}>Bookistan</Text>
+          <Pressable style={styles.themeToggleButton} onPress={toggleTheme}>
+            <Text style={styles.themeToggleText}>
+              {mode === "light" ? "Mode sombre" : "Mode clair"}
+            </Text>
+          </Pressable>
         </View>
 
         <Text style={styles.title}>Bienvenue !</Text>

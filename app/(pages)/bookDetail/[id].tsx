@@ -3,15 +3,15 @@ import { Book } from "@/model/Book";
 import { Comment } from "@/model/Comment";
 import { addBookComment, deleteBook, getBookById, getBookComments, updateBook } from "@/service/BookService";
 import { FontAwesome, Ionicons } from "@expo/vector-icons";
-import MaterialIcons from '@expo/vector-icons/MaterialIcons';
+import MaterialIcons from "@expo/vector-icons/MaterialIcons";
 import { useLocalSearchParams, useRouter } from "expo-router";
-import { ComponentProps, useCallback, useEffect, useState } from "react";
+import { ComponentProps, useCallback, useEffect, useMemo, useState } from "react";
 import { ActivityIndicator, Alert, Image, Pressable, ScrollView, Text, View } from "react-native";
 import * as ImagePicker from "expo-image-picker";
 import { useBookCover } from "@/hooks/useBookCover";
 import CommentSection from "@/component/CommentSection";
-import { bookDetailStyles as styles } from "@/styles/bookDetailStyles";
-import { theme } from "@/theme";
+import { createBookDetailStyles } from "@/styles/bookDetailStyles";
+import { useTheme } from "@/theme";
 export default function BookDetailScreen() {
   const { id } = useLocalSearchParams<{ id?: string }>();
   const [book, setBook] = useState<Book | null>(null);
@@ -26,6 +26,8 @@ export default function BookDetailScreen() {
   }, []);
   const { isbn, coverSource } = useBookCover(book, { onCoverPersisted: handleCoverPersisted });
   const [localCoverUri, setLocalCoverUri] = useState<string | null>(null);
+  const { theme } = useTheme();
+  const styles = useMemo(() => createBookDetailStyles(theme), [theme]);
 
   const router = useRouter();
 
@@ -143,6 +145,13 @@ export default function BookDetailScreen() {
     loadBook(String(book.id));
   };
 
+  const InfoRow = ({ label, value }: InfoRowProps) => (
+    <View style={styles.row}>
+      <Text style={styles.rowLabel}>{label}</Text>
+      <Text style={styles.rowValue}>{value}</Text>
+    </View>
+  );
+
   console.log("Book detail render", { book, loading });
 
   if (loading) {
@@ -248,12 +257,3 @@ type InfoRowProps = {
   label: string;
   value: string;
 };
-
-function InfoRow({ label, value }: InfoRowProps) {
-  return (
-    <View style={styles.row}>
-      <Text style={styles.rowLabel}>{label}</Text>
-      <Text style={styles.rowValue}>{value}</Text>
-    </View>
-  );
-}

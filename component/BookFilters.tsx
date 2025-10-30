@@ -1,8 +1,8 @@
-import { Dispatch, SetStateAction } from "react";
+import { Dispatch, SetStateAction, useMemo } from "react";
 import { Pressable, Text, TextInput, View } from "react-native";
 import { BookSortKey, SortOrder } from "@/service/BookService";
-import { bookFiltersStyles as styles } from "@/styles/bookFiltersStyles";
-import { theme } from "@/theme";
+import { createBookFiltersStyles } from "@/styles/bookFiltersStyles";
+import { useTheme } from "@/theme";
 
 type Props = {
   isFilteredByRead: boolean | null;
@@ -29,6 +29,8 @@ const BookFilters = ({
   sortOrder,
   setSortOrder,
 }: Props) => {
+  const { theme } = useTheme();
+  const styles = useMemo(() => createBookFiltersStyles(theme), [theme]);
   const sortOptions: { label: string; value: BookSortKey }[] = [
     { label: "Titre", value: "title" },
     { label: "Auteur", value: "author" },

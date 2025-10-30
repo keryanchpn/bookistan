@@ -1,5 +1,5 @@
 import { FlatList, Text, View, Pressable } from "react-native";
-import { useCallback, useEffect, useState } from "react";
+import { useCallback, useEffect, useMemo, useState } from "react";
 import { Book } from "@/model/Book";
 import { BookSortKey, SortOrder, getBooksWithParams } from "@/service/BookService";
 import BookListDetail from "@/component/BookListDetail";
@@ -8,7 +8,8 @@ import BookFormModal from "@/component/bookFormModal";
 import { useFocusEffect } from "expo-router";
 import BookFilters from "@/component/BookFilters";
 import { SafeAreaView } from "react-native-safe-area-context";
-import { booksStyles as styles } from "@/styles/booksStyles";
+import { createBooksStyles } from "@/styles/booksStyles";
+import { useTheme } from "@/theme";
 
 
 export default function Books() {
@@ -23,6 +24,8 @@ export default function Books() {
   const [sortOrder, setSortOrder] = useState<SortOrder>("asc");
 
   const router = useRouter();
+  const { theme } = useTheme();
+  const styles = useMemo(() => createBooksStyles(theme), [theme]);
 
   const loadBooks = useCallback(async () => {
     setLoading(true);

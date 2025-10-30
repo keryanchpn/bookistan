@@ -3,8 +3,8 @@ import { addBook, updateBook } from "@/service/BookService";
 import { Picker } from "@react-native-picker/picker";
 import { useEffect, useMemo, useState } from "react";
 import { Platform, Pressable, Text, TextInput, View } from "react-native";
-import { addBookStyles as styles } from "@/styles/addBookStyles";
-import { theme as appTheme } from "@/theme";
+import { createAddBookStyles } from "@/styles/addBookStyles";
+import { useTheme } from "@/theme";
 
 type AddBookProps = {
   onClose?: () => void;
@@ -22,6 +22,8 @@ export default function AddBook({ onClose, onSuccess, book }: AddBookProps) {
   const [isSubmitting, setSubmitting] = useState(false);
   const themeOptions = useMemo(() => Object.values(BookTheme), []);
   const isEditMode = Boolean(book);
+  const { theme: appTheme } = useTheme();
+  const styles = useMemo(() => createAddBookStyles(appTheme), [appTheme]);
 
   const resetForm = () => {
     setName("");
@@ -172,4 +174,3 @@ export default function AddBook({ onClose, onSuccess, book }: AddBookProps) {
     </View>
   );
 }
-

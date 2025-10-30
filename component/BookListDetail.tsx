@@ -4,8 +4,9 @@ import { Image, Pressable, Text, View } from "react-native";
 import { useBookCover } from "@/hooks/useBookCover";
 import { Book } from "@/model/Book";
 import { updateBook } from "@/service/BookService";
-import { bookListDetailStyles as styles } from "@/styles/bookListDetailStyles";
-import { theme } from "@/theme";
+import { createBookListDetailStyles } from "@/styles/bookListDetailStyles";
+import { useTheme } from "@/theme";
+import { useMemo } from "react";
 type BookListDetailProps = {
   book: Book;
   onSuccess?: () => void;
@@ -15,6 +16,8 @@ export default function BookListDetail({ book, onSuccess }: BookListDetailProps)
   const favIconName : any = book.favorite ? "favorite" : "favorite-outline";
   const readIconName : any = book.read ? "checkmark-done-circle" : "checkmark-done-circle-outline";
   const { coverSource } = useBookCover(book);
+  const { theme } = useTheme();
+  const styles = useMemo(() => createBookListDetailStyles(theme), [theme]);
 
   const setFavorite = async () => {
     book.favorite = !book.favorite;
