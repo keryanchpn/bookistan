@@ -10,7 +10,7 @@ J'ai herbergé l'API Book sur render, c'est un des choix les plus simple et effi
 
 ## Hébergement des images
 
-Pour herberger les images importés j'utilise Cloudinary, c'est aussi un des choix gratuit le plus simple !
+Pour l'hebergement d'image, faute d'avoir trouvé une solution efficace en pour les stocker en local j'ai laissé de côté cette fonctionnalité.
 
 # Welcome to your Expo app 👋
 

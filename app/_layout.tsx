@@ -25,6 +25,13 @@ export default function RootLayout() {
           tabBarIcon: ({ color }) => <Ionicons size={28} name="book" color={color} />,
         }}
       />
+      <Tabs.Screen
+        name="statistique"
+        options={{
+          title: 'Statistique',
+          tabBarIcon: ({ color }) => <Ionicons size={28} name="stats-chart" color={color} />,
+        }}
+      />
     </Tabs>
     // <Stack
     //   screenOptions={{

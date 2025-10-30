@@ -144,6 +144,15 @@ export async function addBookComment(bookId: number, content: string) {
     return data;
 }
 
+export async function getStatistics() {
+    const response = await fetch(`${API_URL}/stats`);
+    if (!response.ok) {
+        throw new Error("Failed to fetch statistics");
+    }
+    const data = await response.json();
+    return data;
+}
+
 // Code créé par l'ia pour récupérer un isbn via l'api open library
 
 const OPEN_LIBRARY_ROOT = "https://openlibrary.org";
