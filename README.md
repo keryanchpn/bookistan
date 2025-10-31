@@ -12,6 +12,8 @@ J'ai herbergé l'API Book sur render, c'est un des choix les plus simple et effi
 
 Pour l'hebergement d'image, faute d'avoir trouvé une solution efficace pour les stocker en local, j'ai laissé de côté cette fonctionnalité.
 
+Par contre je récupère grâce à une recherche sur l'api OpenLibrary le code ISBN du livre et donc je récupère automatiquement certaines covers. 
+
 # Welcome to your Expo app 👋
 
 This is an [Expo](https://expo.dev) project created with [`create-expo-app`](https://www.npmjs.com/package/create-expo-app).
